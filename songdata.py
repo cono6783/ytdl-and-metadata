@@ -14,7 +14,7 @@ class SongData():
         self.artists = [data['artists'] | '']
         self.genre = data['genre'] | None
 
-    def overwrite(self, data):
+    def overwrite(self, data): # If the right data is not found in data it will not overwrite
         self.title = data["title"] | self.title
         self.album = data['album'] | self.album
         self.artists = [data['artists'] | ''] if self.artists == [''] else self.artists

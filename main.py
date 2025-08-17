@@ -3,8 +3,15 @@ import json
 import os
 import eyed3
 import yt_dlp
+import re
+from re import Pattern
 
 from songdata import SongData
+
+
+
+
+
 
 def main():
 
@@ -44,8 +51,13 @@ def main():
 		#Need to do some logic somewhere in here to see if i need to parse the title or not
 		
 		print()
-		
-		songData = SongData(jsondata)
+		#First parse the title
+		songData = SongData(extract(jsondata["title"]))
+
+		#Overwrite b/c if i had to parse the title then the data is not going to be in the json
+		songData.overwrite(jsondata)
+
+
 		print(songData)
 		songData.writeDataToFile(f"downloaded/{name}.mp3")
 
@@ -53,11 +65,22 @@ def main():
 
 
 
-def gen_artist_list(artistList):
-	output = ""
-	for artist in artistList:
-		output += artist + "/"
-	return output.removesuffix("/")
+
+patterns : list[Pattern] = list()
+
+#TODO: write one for the ULTRAKILL stuff by KEYGEN
+patterns.append(re.compile(r"\[(?P<genre>.*)\]\s-\s(?P<artist>.*)\s-\s(?P<title>.*)\s\[.*\]")) # Monstercat
+patterns.append(re.compile(r"(?P<artist>.*?)\s-\s(?P<title>.*)")) # Standard
+
+
+def extract(s):
+    for pattern in patterns:
+        match = pattern.match(s)
+        if match != None:
+            return SongData(match)
+
+    print(f"No match found for {s}")
+    return None
 
 
 
