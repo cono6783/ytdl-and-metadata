@@ -4,3 +4,4 @@ ffprobe.exe
 downloaded/
 download.txt
 venv/
+__pycache__/

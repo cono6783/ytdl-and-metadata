@@ -4,6 +4,8 @@ import os
 import eyed3
 import yt_dlp
 
+from songdata import SongData
+
 def main():
 
 
@@ -39,23 +41,14 @@ def main():
 		with open(f"downloaded/{name}.info.json", "r") as jsonfile:
 			jsondata = json.load(jsonfile)
 		
-		
+		#Need to do some logic somewhere in here to see if i need to parse the title or not
 		
 		print()
 		
-		audioFile = eyed3.load(f"downloaded/{name}.mp3")
-		audioFile.tag.clear()
-		if 'artists' in jsondata:
-			print(f'Artist(s): {jsondata["artists"]}')
-			audioFile.tag.artist = gen_artist_list(jsondata["artists"])
-		if 'album' in jsondata:
-			print(f'Album: {jsondata["album"]}')
-			audioFile.tag.album = jsondata['album']
-		if 'title' in jsondata:
-			print(f'Title: {jsondata["title"]}')
-			audioFile.tag.title = jsondata['title']
+		songData = SongData(jsondata)
+		print(songData)
+		songData.writeDataToFile(f"downloaded/{name}.mp3")
 
-		audioFile.tag.save(version=eyed3.id3.ID3_V2_3)
 		os.remove(f"downloaded/{name}.info.json")
 
 
