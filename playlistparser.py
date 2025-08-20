@@ -4,7 +4,7 @@ from selenium.webdriver.common.by import By
 from songdata import SongData
 
 class PlaylistData():
-    def __init__(self, artist : str, albumName : str, albumImage : str | None, titles : list[str], urls : list[str], ids : list[str]) -> None:
+    def __init__(self, artist : list[str], albumName : str, albumImage : str | None, titles : list[str], urls : list[str], ids : list[str]) -> None:
         self.artist = artist
         self.albumName = albumName
         self.albumImage = "" if albumImage == None else albumImage
@@ -14,9 +14,9 @@ class PlaylistData():
 
     def __str__(self) -> str:
         return f"""Artist: {self.artist}
-        Album: {self.albumName}
-        Album Image: {self.albumImage}
-        Titles: {self.titles}"""
+Album: {self.albumName}
+Album Image: {self.albumImage}
+Titles: {self.titles}"""
 
 
 
@@ -26,7 +26,7 @@ class PlaylistData():
         return idOrFilename in self.ids
     
     def generateSongData(self, id):
-        return SongData(title=self.titles[self.ids.index(id)], album=self.albumName, artists=[self.artist], trackNum=self.ids.index(id) + 1)
+        return SongData(title=self.titles[self.ids.index(id)], album=self.albumName, artists=self.artist, trackNum=self.ids.index(id) + 1)
 
 
 def isPlaylist(link : str) -> bool:
@@ -42,7 +42,8 @@ def parsePlaylist(link : str) -> PlaylistData:
 
     driver.implicitly_wait(1)
 
-    artist = driver.find_element(by=By.CSS_SELECTOR, value="ytmusic-responsive-header-renderer").find_element(By.CSS_SELECTOR, "a").text
+    artists = driver.find_element(by=By.CSS_SELECTOR, value="ytmusic-responsive-header-renderer").find_element(By.CLASS_NAME, "strapline-text").text
+    artists = artists.split(" & ")
 
     albumName = driver.find_element(by=By.CSS_SELECTOR, value="ytmusic-responsive-header-renderer").find_element(by=By.CSS_SELECTOR, value="h1").find_element(by=By.CSS_SELECTOR, value="yt-formatted-string").text
 
@@ -65,10 +66,7 @@ def parsePlaylist(link : str) -> PlaylistData:
 
     driver.close()
 
-    return PlaylistData(artist, albumName, albumImage, titles, urls, ids)
+    return PlaylistData(artists, albumName, albumImage, titles, urls, ids)
         
 
 
-if __name__ == "__main__":
-    pd = parsePlaylist("https://music.youtube.com/playlist?list=OLAK5uy_lzCpGbBL0E2rUrCGFbzZ59QVJoR7vgpTE")
-    print(pd)

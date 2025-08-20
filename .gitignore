@@ -1,6 +1,7 @@
 command.txt
 ffmpeg.exe
 ffprobe.exe
+playlistparsetester.py
 downloaded/
 download.txt
 venv/
