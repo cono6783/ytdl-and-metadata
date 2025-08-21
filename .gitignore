@@ -3,6 +3,7 @@ ffmpeg.exe
 ffprobe.exe
 playlistparsetester.py
 downloaded/
+progress/
 download.txt
 venv/
 __pycache__/

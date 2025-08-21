@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.webdriver import Firefox
 from selenium.webdriver.common.by import By
 
 from songdata import SongData
@@ -32,15 +33,8 @@ Titles: {self.titles}"""
 def isPlaylist(link : str) -> bool:
     return "playlist?list=" in link
 
+def _parsePlaylistWithDriver(driver : Firefox):
 
-def parsePlaylist(link : str) -> PlaylistData:
-    firefox_options = webdriver.FirefoxOptions()
-    firefox_options.add_argument("-headless")
-    driver = webdriver.Firefox(options=firefox_options)
-
-    driver.get(link)
-
-    driver.implicitly_wait(1)
 
     artists = driver.find_element(by=By.CSS_SELECTOR, value="ytmusic-responsive-header-renderer").find_element(By.CLASS_NAME, "strapline-text").text
     artists = artists.split(" & ")
@@ -67,6 +61,32 @@ def parsePlaylist(link : str) -> PlaylistData:
     driver.close()
 
     return PlaylistData(artists, albumName, albumImage, titles, urls, ids)
+
+def parsePlaylist(link : str) -> PlaylistData:
+    firefox_options = webdriver.FirefoxOptions()
+    firefox_options.add_argument("-headless")
+    driver = webdriver.Firefox(options=firefox_options)
+
+    driver.get(link)
+
+    driver.implicitly_wait(1)
+
+    return _parsePlaylistWithDriver(driver)
         
 
+def repairFromVideo(uid : str):
+    url = f"https://music.youtube.com/watch?v={uid}"
 
+    firefox_options = webdriver.FirefoxOptions()
+    firefox_options.add_argument("-headless")
+    driver = webdriver.Firefox(options=firefox_options)
+
+    driver.get(url)
+
+    driver.implicitly_wait(1)
+
+    driver.find_element(By.CLASS_NAME, "content-info-wrapper").find_element(By.CLASS_NAME, "subtitle").find_elements(By.CSS_SELECTOR, "a")[1].click()
+
+
+
+    return _parsePlaylistWithDriver(driver)

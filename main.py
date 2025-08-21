@@ -30,7 +30,7 @@ def main():
 	'fragment_retries': 10,
 	'ignoreerrors': 'only_download',
 	'noplaylist': True,
-	'outtmpl': {'default': 'downloaded/%(id)s.%(ext)s', 'pl_thumbnail': ''},
+	'outtmpl': {'default': 'progress/%(id)s.%(ext)s', 'pl_thumbnail': ''},
 	'postprocessors': [{'key': 'FFmpegExtractAudio',
 		'nopostoverwrites': False,
 		'preferredcodec': 'mp3',
@@ -43,6 +43,10 @@ def main():
 	'writeinfojson': True,
 	'writethumbnail': True}
 
+	while os.listdir("progress") != []:
+		files = os.listdir("progress")
+		applyMetadataWithPlaylistData(playlist.repairFromVideo(files[0].split(".")[0]))
+		
 
 	
 	
@@ -76,15 +80,18 @@ def main():
 	with yt_dlp.YoutubeDL(ytdl_options) as ytdl:
 		ytdl.download(URLS)
 
+	with open("download.txt", "w") as urlfile:
+		urlfile.writelines(URLS)
+
 	
 
 
 
 def applyMetadataWithJSON():
-	for file in os.listdir("downloaded"):
+	for file in os.listdir("progress"):
 		if file.endswith("mp3"): continue
 		name = file.split(".")[0]
-		with open(f"downloaded/{name}.info.json", "r") as jsonfile:
+		with open(f"progress/{name}.info.json", "r") as jsonfile:
 			jsondata = json.load(jsonfile)
 		
 		#Need to do some logic somewhere in here to see if i need to parse the title or not
@@ -99,16 +106,16 @@ def applyMetadataWithJSON():
 
 
 		print(songData)
-		songData.writeDataToFile(f"downloaded/{name}.mp3")
+		songData.writeDataToFile(f"progress/{name}.mp3")
 
-		os.remove(f"downloaded/{name}.info.json")
+		os.remove(f"progress/{name}.info.json")
 
 def applyMetadataWithPlaylistData(playlistData : playlist.PlaylistData):
 
 	#Download albumImage first
 	response = requests.get(playlistData.albumImage, stream=True) # Not entirely sure if a stream is required
 	if response.status_code == 200:
-		with open(f"downloaded/{playlistData.albumName}.jpg", "wb") as imgFile:
+		with open(f"progress/{playlistData.albumName}.jpg", "wb") as imgFile:
 			for chunk in response.iter_content(chunk_size=8192):
 				imgFile.write(chunk)
 		print(f"{playlistData.albumName}.jpg successfully downloaded")
@@ -117,20 +124,20 @@ def applyMetadataWithPlaylistData(playlistData : playlist.PlaylistData):
 
 
 
-	for file in os.listdir("downloaded"):
+	for file in os.listdir("progress"):
 		if playlistData.hasDataFor(file):
 			songData = playlistData.generateSongData(file.removesuffix('.mp3'))
 
 			print(songData)
 
-			songData.writeDataToFile(f"downloaded/{file}")
+			songData.writeDataToFile(f"progress/{file}")
 
-			audioFile = eyed3.load(f"downloaded/{file}")
+			audioFile = eyed3.load(f"progress/{file}")
 			if audioFile == None:
 				print(f"Writing Data failed: Could not find {file}")
 				continue
 
-			with open(f"downloaded/{playlistData.albumName}.jpg", "rb") as imgFile:
+			with open(f"progress/{playlistData.albumName}.jpg", "rb") as imgFile:
 				audioFile.tag.images.set(
 					ImageFrame.FRONT_COVER,
 					imgFile.read(),
@@ -139,7 +146,9 @@ def applyMetadataWithPlaylistData(playlistData : playlist.PlaylistData):
 			
 			audioFile.tag.save()
 
-	os.remove(f"downloaded/{playlistData.albumName}.jpg")
+			os.rename(f"progress/{file}", f"downloaded/{file}")
+
+	os.remove(f"progress/{playlistData.albumName}.jpg")
 
 			
 
