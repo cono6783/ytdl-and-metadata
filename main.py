@@ -45,7 +45,7 @@ def main():
 
 	while os.listdir("progress") != []:
 		files = os.listdir("progress")
-		applyMetadataWithPlaylistData(playlist.repairFromVideo(files[0].split(".")[0]))
+		applyMetadataWithPlaylistData(playlist.repairFromVideoUID(files[0].split(".")[0]))
 		
 
 	
@@ -59,12 +59,26 @@ def main():
 			ytdl_options["writeinfojson"] = False
 			ytdl_options["writethumbnail"] = False
 			playlistData = playlist.parsePlaylist(url)
-			URLS.remove(url)
 
 			with yt_dlp.YoutubeDL(ytdl_options) as ytdl:
 				ytdl.download(playlistData.urls)
 
 			applyMetadataWithPlaylistData(playlistData)
+
+		elif "music.youtube.com" in url:
+			print("Autodetected as yt music. Will get data from album")
+			ytdl_options["writeinfojson"] = False
+			ytdl_options["writethumbnail"] = False
+			playlistData = playlist.repairFromVideoURL(url)
+			
+
+			with yt_dlp.YoutubeDL(ytdl_options) as ytdl:
+				ytdl.download(url)
+
+			applyMetadataWithPlaylistData(playlistData)
+
+
+		
 		else:
 			ytdl_options["writeinfojson"] = True
 			ytdl_options["writethumbnail"] = True
@@ -73,12 +87,13 @@ def main():
 				ytdl.download(url)
 
 			applyMetadataWithJSON()
+
+		URLS.remove(url)
 			
 			
 
 
-	with yt_dlp.YoutubeDL(ytdl_options) as ytdl:
-		ytdl.download(URLS)
+
 
 	with open("download.txt", "w") as urlfile:
 		urlfile.writelines(URLS)

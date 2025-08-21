@@ -74,9 +74,7 @@ def parsePlaylist(link : str) -> PlaylistData:
     return _parsePlaylistWithDriver(driver)
         
 
-def repairFromVideo(uid : str):
-    url = f"https://music.youtube.com/watch?v={uid}"
-
+def repairFromVideoURL(url : str):
     firefox_options = webdriver.FirefoxOptions()
     firefox_options.add_argument("-headless")
     driver = webdriver.Firefox(options=firefox_options)
@@ -90,3 +88,8 @@ def repairFromVideo(uid : str):
 
 
     return _parsePlaylistWithDriver(driver)
+
+def repairFromVideoUID(uid : str):
+    return repairFromVideoURL(f"https://music.youtube.com/watch?v={uid}")
+
+    
